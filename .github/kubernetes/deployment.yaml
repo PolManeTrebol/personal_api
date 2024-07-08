@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: NAME_DEPLOYMENT
+  namespace: trebol-api
+spec:
+  replicas: 1
+  minReadySeconds: 90
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: NAME_SERVICE
+  template:
+    metadata:
+      labels:
+        app: NAME_SERVICE
+    spec:
+      containers:
+        - name: NAME_DEPLOYMENT
+          image: IMAGE_URL
+          ports:
+            - containerPort: 5001
+          env:
+            - name: ENV
+              value: production
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vault-secrets
+                  key: VAULT_TOKEN
+            - name: VAULT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: vault-secrets
+                  key: VAULT_URL
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - /home/app/.github/kubernetes/health-check.sh
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 2
+            successThreshold: 1
+          livenessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - /home/app/.github/kubernetes/health-check.sh
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 2
+      terminationGracePeriodSeconds: 60
+  revisionHistoryLimit: 3

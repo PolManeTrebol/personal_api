@@ -1,0 +1,26 @@
+[MASTER]
+load-plugins=pylint_no_resource
+extension-pkg-allow-list=
+    dependency_injector
+ignore=tests
+ignore-patterns=__init__.py
+
+[FORMAT]
+max-line-length=120
+
+[MESSAGES CONTROL]
+disable=
+    C0114, # missing-module-docstring,
+    C0116, # Missing function or method docstring (missing-function-docstring)
+    C0115, # Missing class docstring (missing-class-docstring),
+    R0903, # too-few-public-methods
+    E0401, # import-error
+    C0411, # wrong-import-order
+    C0103, # invalid-name
+    W0511, #TODOS
+
+[REPORTS]
+output-format=colorized
+
+[BASIC]
+const-rgx=(([A-Z_]+[A-Z0-9_]*)|(__.*__))$

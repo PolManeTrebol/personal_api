@@ -1,0 +1,13 @@
+# service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: NAME_SERVICE
+  namespace: trebol-api
+spec:
+  selector:
+    app: NAME_SERVICE
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5001

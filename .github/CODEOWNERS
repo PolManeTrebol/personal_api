@@ -1,0 +1,14 @@
+# CODEOWNERS file for GitHub repository
+# This file specifies who owns code in the repository and is automatically
+# requested for review when someone opens a pull request that modifies code
+# that they own.
+
+# CI/CD files
+Dockerfile @guillemtrebol @MarcPortoTrebol
+.github/* @guillemtrebol @MarcPortoTrebol
+
+# Entrypoint file
+airflow.py @guillemtrebol @MarcPortoTrebol
+
+# .idea Try to delete it forever
+.idea/* @guillemtrebol

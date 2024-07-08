@@ -1,0 +1,40 @@
+# .bandit
+# Configuration for Bandit - Python security linter
+
+# Specify which tests to run and which to skip
+#tests:
+  # List test IDs to include
+  #include:
+  #  - B101
+  #  - B102
+  # List test IDs to exclude
+  #exclude:
+  #  - B105
+  #  - B108
+
+# Define which files or directories to scan
+#targets:
+#  - ./project_name
+
+# Define which files or directories to exclude from scanning
+exclude_dirs:
+  - ./tests
+  - ./mocks
+
+# Define the level of severity to report (LOW, MEDIUM, HIGH)
+severity:
+  - LOW
+  - HIGH
+  - MEDIUM
+
+# Define the level of confidence to report (LOW, MEDIUM, HIGH)
+confidence:
+  - LOW
+  - HIGH
+  - MEDIUM
+
+# Output settings
+output_format: txt
+output_file: bandit-report.txt
+quiet: false
+verbose: true

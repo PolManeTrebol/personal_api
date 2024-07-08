@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: NAME_DEPLOYMENT
+  namespace: trebol-api
+spec:
+  replicas: 1
+  minReadySeconds: 60  # Incrementado para asegurar que el nuevo pod esté listo
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0  # No permite que ningún pod esté fuera de servicio
+      maxSurge: 1  # Permite que un pod adicional esté en proceso de creación
+  selector:
+    matchLabels:
+      app: NAME_SERVICE
+  template:
+    metadata:
+      labels:
+        app: NAME_SERVICE
+    spec:
+      containers:
+        - name: NAME_DEPLOYMENT
+          image: IMAGE_URL
+          ports:
+            - containerPort: 5001
+          env:
+            - name: ENV
+              value: test
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vault-secrets
+                  key: VAULT_TOKEN
+            - name: VAULT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: vault-secrets
+                  key: VAULT_URL
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - /home/app/.github/kubernetes/health-check.sh
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+          livenessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - /home/app/.github/kubernetes/health-check.sh
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+      terminationGracePeriodSeconds: 60  # Tiempo para permitir que los pods antiguos terminen correctamente
+  revisionHistoryLimit: 3  # Guarda las últimas 3 revisiones del despliegue

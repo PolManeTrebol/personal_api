@@ -1,0 +1,162 @@
+name: Deploy to EKS
+
+on:
+  push:
+    branches: [release, test]
+
+jobs:
+  check:
+    name: Check files
+    outputs:
+      kubernetes_changes: ${{ steps.check_files.outputs.kubernetes_changes }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check modified files
+        id: check_files
+        run: |
+          echo "=============== list modified files ==============="
+          git diff --name-only HEAD^ HEAD > files.txt
+          kubernetes_changes=false
+          while IFS= read -r file
+          do
+            echo $file
+            if [[ $file == .github/kubernetes/* ]]; then
+              kubernetes_changes=true
+              break
+            fi
+          done < files.txt
+          echo "kubernetes_changes=$kubernetes_changes" >> $GITHUB_ENV
+          echo "kubernetes_changes=$kubernetes_changes" >> $GITHUB_OUTPUT
+
+      - name: Set branch-based environment variables
+        uses: iamtheyammer/branch-env-vars@v1.2.2
+        with:
+          bevOverwrite: true
+          ECR_REPOSITORY: |
+            release:${{ github.event.repository.name }}
+            test:${{ github.event.repository.name }}-test
+
+      - name: Check if deployment exists
+        id: check_deployment
+        run: |
+          DEPLOYMENT_NAME="${{ env.ECR_REPOSITORY }}-deployment"
+          if kubectl get deployment "$DEPLOYMENT_NAME" -n trebol-api; then
+            echo "deployment_exists=true" >> $GITHUB_ENV
+          else
+            echo "deployment_exists=false" >> $GITHUB_ENV
+          fi
+          echo "deployment_exists=$deployment_exists" >> $GITHUB_OUTPUT
+
+  build:
+    name: Build Image
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x ./kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
+
+      - name: Set up kubeconfig
+        run: |
+          aws eks update-kubeconfig --name EKS-TrebolEnergia --region eu-west-1
+          kubectl config view
+
+      - name: Set branch-based environment variables
+        uses: iamtheyammer/branch-env-vars@v1.2.2
+        with:
+          bevOverwrite: true
+          ECR_REPOSITORY: |
+            release:${{ github.event.repository.name }}
+            test:${{ github.event.repository.name }}-test
+
+      - name: Scale up deployment
+        if: ${{ needs.check.outputs.deployment_exists }} == 'true'
+        run: |
+          kubectl scale deployment ${{ env.ECR_REPOSITORY }}-deployment --replicas=2 -n trebol-api
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Create ECR repository if it does not exist
+        run: |
+          aws ecr describe-repositories --repository-names $ECR_REPOSITORY || aws ecr create-repository --repository-name $ECR_REPOSITORY
+
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: latest
+        run: |
+          docker build . -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --build-arg access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" --build-arg secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Deploy to EKS for release branch
+        if: github.ref == 'refs/heads/release'
+        run: |
+          if [ "${{ needs.check.outputs.kubernetes_changes }}" == "true" or "${{ needs.check.outputs.deployment_exists }}" == "true" ]; then
+            sed -i "s|IMAGE_URL|${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}|" .github/kubernetes/deployment.yaml
+            sed -i "s|NAME_DEPLOYMENT|${{ env.ECR_REPOSITORY }}-deployment|g" .github/kubernetes/deployment.yaml
+            sed -i "s|NAME_SERVICE|${{ env.ECR_REPOSITORY }}-service|g" .github/kubernetes/service.yaml
+            kubectl apply -f .github/kubernetes/deployment.yaml
+            kubectl apply -f .github/kubernetes/service.yaml
+          else
+            sed -i "s|NAME_SERVICE|${{ env.ECR_REPOSITORY }}-service|g" .github/kubernetes/service.yaml
+            kubectl rollout restart deployment/${{ env.ECR_REPOSITORY }}-deployment -n trebol-api
+            if ! kubectl rollout status deployment/${{ env.ECR_REPOSITORY }}-deployment -n trebol-api --timeout=300s; then
+              echo "Deployment failed, rolling back"
+              kubectl rollout undo deployment/${{ env.ECR_REPOSITORY }}-deployment -n trebol-api
+              kubectl scale deployment ${{ env.ECR_REPOSITORY }}-deployment --replicas=1 -n trebol-api
+              exit 1
+            fi
+            kubectl scale deployment ${{ env.ECR_REPOSITORY }}-deployment --replicas=1 -n trebol-api
+            kubectl apply -f .github/kubernetes/service.yaml
+          fi
+
+      - name: Deploy to EKS for test branch
+        if: github.ref == 'refs/heads/test'
+        run: |
+          if [ "${{ needs.check.outputs.kubernetes_changes }}" == "true" or "${{ needs.check.outputs.deployment_exists }}" == "true" ]; then
+            sed -i "s|IMAGE_URL|${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}|" .github/kubernetes/deployment-test.yaml
+            sed -i "s|NAME_DEPLOYMENT|${{ env.ECR_REPOSITORY }}-deployment|g" .github/kubernetes/deployment-test.yaml
+            sed -i "s|NAME_SERVICE|${{ env.ECR_REPOSITORY }}-service|g" .github/kubernetes/service-test.yaml
+            kubectl apply -f .github/kubernetes/deployment-test.yaml
+            kubectl apply -f .github/kubernetes/service-test.yaml
+          else
+            sed -i "s|NAME_SERVICE|${{ env.ECR_REPOSITORY }}-service|g" .github/kubernetes/service-test.yaml
+            kubectl rollout restart deployment/${{ env.ECR_REPOSITORY }}-test-deployment -n trebol-api
+            if ! kubectl rollout status deployment/${{ env.ECR_REPOSITORY }}-test-deployment -n trebol-api --timeout=300s; then
+              echo "Deployment failed, rolling back"
+              kubectl rollout undo deployment/${{ env.ECR_REPOSITORY }}-test-deployment -n trebol-api
+              kubectl scale deployment ${{ env.ECR_REPOSITORY }}-test-deployment --replicas=1 -n trebol-api
+              exit 1
+            fi
+            kubectl scale deployment ${{ env.ECR_REPOSITORY }}-test-deployment --replicas=1 -n trebol-api
+            kubectl apply -f .github/kubernetes/service-test.yaml
+          fi
+
+      - name: Show deployed resources
+        run: |
+          sleep 10
+          echo "Mostrando deployments:"
+          kubectl get deployment/${{ env.ECR_REPOSITORY }}-deployment -n trebol-api
+          echo "Mostrando services:"
+          kubectl get svc/${{ env.ECR_REPOSITORY }}-service -n trebol-api

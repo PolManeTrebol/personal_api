@@ -1,0 +1,38 @@
+[run]
+source =
+    .
+
+omit =
+    */tests/*
+    */middlewares/*
+    server.py
+    main.py
+    app_config.py
+    src/connection/*
+    src/constants/*
+    src/model/*
+    src/__init__.py
+    src/decorators/__init__.py
+    src/decorators/check_permission.py
+    src/model/__init__.py
+    src/query/__init__.py
+    src/utils/__init__.py
+    src/utils/base_resource.py
+    src/utils/base_resource_no_token_required.py
+    src/utils/endpoint_error.py
+    src/utils/environment_configuration.py
+    src/utils/http_status_code_enum.py
+    src/utils/opentelemetry_utils.py
+    src/utils/role_enums.py
+    src/v1/__init__.py
+    src/v1/health_check/__init__.py
+    src/v1/health_check/health_check_view.py
+    src/v1/hello_world/__init__.py
+    src/v1/hello_world/hello_world_view.py
+    src/v1/hello_world_db/__init__.py
+    src/v1/hello_world_db/hello_world_db_repository.py
+    src/v1/hello_world_db/hello_world_db_view.py
+    src/v1/v1_blueprint.py
+
+[report]
+show_missing = True
