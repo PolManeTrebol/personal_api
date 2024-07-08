@@ -1,7 +1,7 @@
 import sys
 import traceback
-from injector import Injector, UnsatisfiedRequirement, CircularDependency, UnknownProvider, CallError
 import os
+from injector import Injector, UnsatisfiedRequirement, CircularDependency, UnknownProvider, CallError
 from werkzeug.exceptions import HTTPException
 
 from src.server import configure, create_app

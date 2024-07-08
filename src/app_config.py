@@ -5,6 +5,8 @@ class Config:
     SCOPE = ["User.ReadBasic.All"]
     SESSION_TYPE = "filesystem"
     SESSION_COOKIE_SECURE = True
+    KEYCLOAK_BASE_URL = 'https://172.30.2.203/auth'
+
 
 
 class ProductionConfig(Config):
@@ -26,6 +28,7 @@ class DevelopmentConfig(Config):
         self.MAIN_PATH: str = '../'
         self.SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
         self.SQLALCHEMY_DATABASE_URI: str | None = connection_string
+
     # pylint: enable=too-many-instance-attributes
 
 
