@@ -1,4 +1,4 @@
-injector==0.21.0
+injector~=0.22.0
 pytest>=7.4.2
 vaultcredentialsmanager>=1.0.10
 psycopg2==2.9.9
@@ -6,7 +6,7 @@ opentelemetry-instrumentation==0.41b0
 opentelemetry-instrumentation-wsgi==0.41b0
 honeycomb-opentelemetry==0.2.3b0
 jwcrypto==1.5.1
-PyJWT
+PyJWT~=2.8.0
 alembic==1.13.1
 SQLAlchemy==2.0.31
 Flask==3.0.3
@@ -16,3 +16,7 @@ flask-restx>=1.3.0
 Flask-Injector == 0.15.0
 
 
+
+requests~=2.32.3
+urllib3~=2.2.2
+Werkzeug~=3.0.3

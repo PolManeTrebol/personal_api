@@ -1,10 +1,13 @@
 from flask_restx import Namespace, reqparse
 from flask import make_response, Response, jsonify
+from injector import inject
+
 from src.utils.base_resource import BaseResource
 from src.utils.endpoint_error import EndpointError
 from src.utils.http_status_code_enum import HttpStatusCodeEnum
 from src.utils.role_enums import RolesEnum
 from src.decorators.check_permission import check_permission
+from src.v1.keycloak_mails_account.proxies.keycloak_proxy import KeycloakProxy
 from src.v1.keycloak_mails_account.services.keycloak_group_mails_service import KeycloakGroupMailsService
 
 api = Namespace('Keycloak group mails', description='Mails from a Keycloak group')
@@ -17,14 +20,19 @@ parser.add_argument('idaccount', location='args', type=int,
 
 @api.route('')
 class KeycloakMailsGroupView(BaseResource):
+    @inject
+    def __init__(self, keycloak_proxy: KeycloakProxy, **kwargs) -> None:  # type: ignore
+        self.keycloak_proxy = keycloak_proxy
+        super().__init__(**kwargs)
+
     @api.expect(parser)
-    @check_permission(RolesEnum.READ_ONLY.value)
+    @check_permission(RolesEnum.WRITE_ONLY.value)
     @api.response(200, 'Success')
     @api.response(500, 'Internal Server Error')
     def get(self) -> Response:
         args = parser.parse_args()
         try:
-            service: KeycloakGroupMailsService = KeycloakGroupMailsService()
+            service: KeycloakGroupMailsService = KeycloakGroupMailsService(self.keycloak_proxy)
 
             mail_list: list = service.get_emails_from_idaccount(args.idaccount)
 

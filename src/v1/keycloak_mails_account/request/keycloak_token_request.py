@@ -1,6 +1,7 @@
 from typing import Any
 
 import requests
+from flask import current_app
 from requests import Response
 from vault.credentials_manager import VaultCredentialsManager
 
@@ -11,7 +12,7 @@ class KeycloakTokenRequest:
 
     def get_token(self) -> dict[str, Any]:
         try:
-            base_url: str = 'https://172.30.2.203/auth'
+            base_url: str = current_app.config['KEYCLOAK_BASE_URL']
             vault = VaultCredentialsManager()
             username = vault.read_kv_secret(secret_path='production/portal_mail_credentials')['username']
             password = vault.read_kv_secret(secret_path='production/portal_mail_credentials')['password_keycloak']
