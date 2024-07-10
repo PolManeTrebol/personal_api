@@ -6,9 +6,9 @@ from requests import Session, Response, get
 from src.v1.keycloak_mails_account.proxies.keycloak_clients_group import KeycloakClientsGroup
 
 
-class GroupsClientsKeycloakRequest:
+class KeycloakGroupClientsRequest:
 
-    def get(self, token: str) -> list[dict[str, Any]]:
+    def get(self, token: str) -> dict[str, Any]:
         try:
             base_url: str = current_app.config['KEYCLOAK_BASE_URL']
             url: str = f"{base_url}/admin/realms/trebol/groups/{KeycloakClientsGroup.id}"
@@ -16,7 +16,7 @@ class GroupsClientsKeycloakRequest:
 
             response: Response = get(url=url, headers=headers, verify=False)
             response.raise_for_status()
-            groups_fetched: list[dict[str, Any]] = response.json()
+            groups_fetched: dict[str, Any] = response.json()
 
             return groups_fetched
         except Exception:
