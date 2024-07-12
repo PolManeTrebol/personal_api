@@ -1,5 +1,3 @@
-from typing import Any
-
 import requests
 from flask import current_app
 from requests import Response
@@ -10,7 +8,7 @@ from src.v1.keycloak_mails_account.proxies.keycloak_config import KeycloakConfig
 
 class KeycloakTokenRequest:
 
-    def get_token(self) -> dict[str, Any]:
+    def get_token(self) -> dict[str, type]:
         try:
             base_url: str = current_app.config['KEYCLOAK_BASE_URL']
             vault = VaultCredentialsManager()
@@ -27,7 +25,7 @@ class KeycloakTokenRequest:
             url: str = f"{base_url}/realms/trebol/protocol/openid-connect/token"
             response: Response = requests.post(url=url, data=payload, verify=False)
             response.raise_for_status()
-            token_information_response: dict[str, Any] = response.json()
+            token_information_response: dict[str, type] = response.json()
             return token_information_response
         except Exception as e:
             raise Exception(f'Error al obtener el token de Keycloak: {str(e)}')

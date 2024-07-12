@@ -1,14 +1,12 @@
-from typing import List, Dict, Any
-
 from flask import current_app
-from requests import Session, Response, get
+from requests import Response, get
 
 from src.v1.keycloak_mails_account.proxies.keycloak_clients_group import KeycloakClientsGroup
 
 
 class KeycloakGroupClientsRequest:
 
-    def get(self, token: str) -> dict[str, Any]:
+    def get(self, token: str) -> dict[str, type]:
         try:
             base_url: str = current_app.config['KEYCLOAK_BASE_URL']
             url: str = f"{base_url}/admin/realms/trebol/groups/{KeycloakClientsGroup.id}"
@@ -16,7 +14,7 @@ class KeycloakGroupClientsRequest:
 
             response: Response = get(url=url, headers=headers, verify=False)
             response.raise_for_status()
-            groups_fetched: dict[str, Any] = response.json()
+            groups_fetched: dict[str, type] = response.json()
 
             return groups_fetched
         except Exception:

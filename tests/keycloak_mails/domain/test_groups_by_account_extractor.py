@@ -1,9 +1,7 @@
-from typing import Any
-
 import pytest
 
 from src.v1.keycloak_mails_account.domain.groups_by_account_extractor import GroupsByAccountExtractor
-from tests.keycloak_mails.keycloak_response_data import GROUP_WITH_MORE_SUBGROUPS, GROUP_WITH_ONE_SUBGROUP, \
+from tests.keycloak_mails.keycloak_response_mock_data import GROUP_WITH_MORE_SUBGROUPS, GROUP_WITH_ONE_SUBGROUP, \
     GROUP_WITH_NO_SUBGROUPS_BUT_ROLE, GROUP_WITH_NO_SUBGROUPS_AND_NO_ROLE, GROUP_WITH_MIXED_SUBRGOUPS, \
     CLIENTS_GROUP_RESPONSE
 
@@ -18,7 +16,7 @@ class TestGroupsByAccountExtractor:
         (GROUP_WITH_MIXED_SUBRGOUPS, 1157, ['5.2'])
 
     ])
-    def test_recurse_subgroups(self, input_group: dict[str, Any], input_id_account: int, expected_list: list[str]):
+    def test_recurse_subgroups(self, input_group: dict[str, type], input_id_account: int, expected_list: list[str]):
         # Arrange
         extractor: GroupsByAccountExtractor = GroupsByAccountExtractor()
 

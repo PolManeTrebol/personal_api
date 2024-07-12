@@ -7,6 +7,7 @@ from src.utils.endpoint_error import EndpointError
 from src.utils.http_status_code_enum import HttpStatusCodeEnum
 from src.utils.role_enums import RolesEnum
 from src.decorators.check_permission import check_permission
+from src.v1.keycloak_mails_account.domain.groups_by_account_extractor import GroupsByAccountExtractor
 from src.v1.keycloak_mails_account.proxies.keycloak_proxy import KeycloakProxy
 from src.v1.keycloak_mails_account.services.keycloak_group_mails_service import KeycloakGroupMailsService
 
@@ -21,8 +22,10 @@ parser.add_argument('idaccount', location='args', type=int,
 @api.route('')
 class KeycloakMailsGroupView(BaseResource):
     @inject
-    def __init__(self, keycloak_proxy: KeycloakProxy, **kwargs) -> None:  # type: ignore
+    def __init__(self, keycloak_proxy: KeycloakProxy, group_extractor: GroupsByAccountExtractor,
+                 **kwargs) -> None:  # type: ignore
         self.keycloak_proxy = keycloak_proxy
+        self.group_extractor = group_extractor
         super().__init__(**kwargs)
 
     @api.expect(parser)
@@ -32,7 +35,8 @@ class KeycloakMailsGroupView(BaseResource):
     def get(self) -> Response:
         args = parser.parse_args()
         try:
-            service: KeycloakGroupMailsService = KeycloakGroupMailsService(self.keycloak_proxy)
+            service: KeycloakGroupMailsService = KeycloakGroupMailsService(keycloak_proxy=self.keycloak_proxy,
+                                                                           group_extractor=self.group_extractor)
 
             mail_list: list = service.get_emails_from_idaccount(args.idaccount)
 
