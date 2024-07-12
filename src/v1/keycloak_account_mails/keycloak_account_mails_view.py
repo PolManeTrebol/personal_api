@@ -7,9 +7,9 @@ from src.utils.endpoint_error import EndpointError
 from src.utils.http_status_code_enum import HttpStatusCodeEnum
 from src.utils.role_enums import RolesEnum
 from src.decorators.check_permission import check_permission
-from src.v1.keycloak_mails_account.domain.groups_by_account_extractor import GroupsByAccountExtractor
-from src.v1.keycloak_mails_account.proxies.keycloak_proxy import KeycloakProxy
-from src.v1.keycloak_mails_account.services.keycloak_account_mails_service import KeycloakGroupMailsService
+from src.v1.keycloak_account_mails.domain.groups_by_account_extractor import GroupsByAccountExtractor
+from src.v1.keycloak_account_mails.proxies.keycloak_proxy import KeycloakProxy
+from src.v1.keycloak_account_mails.services.keycloak_account_mails_service import KeycloakGroupMailsService
 
 api = Namespace('Keycloak group mails', description='Mails from a Keycloak group')
 

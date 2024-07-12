@@ -1,5 +1,5 @@
-from src.v1.keycloak_mails_account.domain.groups_by_account_extractor import GroupsByAccountExtractor
-from src.v1.keycloak_mails_account.proxies.keycloak_proxy import KeycloakProxy
+from src.v1.keycloak_account_mails.domain.groups_by_account_extractor import GroupsByAccountExtractor
+from src.v1.keycloak_account_mails.proxies.keycloak_proxy import KeycloakProxy
 
 
 class KeycloakGroupMailsService:

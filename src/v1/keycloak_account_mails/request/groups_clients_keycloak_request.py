@@ -1,7 +1,7 @@
 from flask import current_app
 from requests import Response, get
 
-from src.v1.keycloak_mails_account.proxies.keycloak_clients_group import KeycloakClientsGroup
+from src.v1.keycloak_account_mails.proxies.keycloak_clients_group import KeycloakClientsGroup
 
 
 class KeycloakGroupClientsRequest:

@@ -1,8 +1,8 @@
 import urllib3
 
-from src.v1.keycloak_mails_account.request.groups_clients_keycloak_request import KeycloakGroupClientsRequest
-from src.v1.keycloak_mails_account.request.keycloak_group_members_request import KeycloakGroupMembersRequest
-from src.v1.keycloak_mails_account.request.keycloak_token_request import KeycloakTokenRequest
+from src.v1.keycloak_account_mails.request.groups_clients_keycloak_request import KeycloakGroupClientsRequest
+from src.v1.keycloak_account_mails.request.keycloak_group_members_request import KeycloakGroupMembersRequest
+from src.v1.keycloak_account_mails.request.keycloak_token_request import KeycloakTokenRequest
 
 
 class KeycloakProxy:

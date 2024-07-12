@@ -3,7 +3,7 @@ from flask import current_app
 from requests import Response
 from vault.credentials_manager import VaultCredentialsManager
 
-from src.v1.keycloak_mails_account.proxies.keycloak_config import KeycloakConfig
+from src.v1.keycloak_account_mails.proxies.keycloak_config import KeycloakConfig
 
 
 class KeycloakTokenRequest:
